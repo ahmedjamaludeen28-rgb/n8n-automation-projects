@@ -1,0 +1,283 @@
+{
+  "name": "customer support creation",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "this business is a phone repair shop called nabil gadgets, open from 8am to 6pm, basic repair cost $100, replacement of parts $150-$250, gadgets sales $500 to $1500\n\nFAQs\n1- price of screen repair; $100 to $120\n2- What types of phone do you sell; Android and iphones\n3- Do you sell laptops; NO\n4- Do you sell airpods; only on order\n5- price of ipad; from $300 to $600.\n\nrule: Reply ESCALATE only if the customer asks about the shop or it's services and the answer is not in the info above. anything the customer told you earlier in this conversation count it as known information, so use it."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "09a8738e-5a05-4538-8691-9c04d106a544",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 15
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        336,
+        208
+      ],
+      "id": "abf58000-1ffc-4405-a941-f73282f5d834",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "9c6511cd-a405-44db-96ec-c5c5c3b9832a",
+              "leftValue": "={{ $json.bot_reply }}",
+              "rightValue": "ESCALATE",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        784,
+        128
+      ],
+      "id": "1361d89b-2a41-4e3c-8b6d-9a444253b2ac",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "4dbd6fd0-3d49-4ea4-9fde-12360951d91a",
+      "name": "When chat message received",
+      "webhookId": "0ca82c71-4bd2-4bc1-8f51-b5d7bbab140c"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0d4df0f4-06e3-4e9a-953c-e4c17ca11d9b",
+              "name": "Output",
+              "value": "I've passed this to a human, they'll reply you soon",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        960,
+        32
+      ],
+      "id": "bfcd02a2-83ac-4e5d-a298-39a120b7e4f0",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        96,
+        208
+      ],
+      "id": "81cc6592-9445-4d75-8045-0fb52927adeb",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "1ugA5gp5dThU5Ybh",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "sNIzGl6ePEohZP0D",
+          "mode": "list",
+          "cachedResultName": "support logs",
+          "cachedResultUrl": "/projects/As3tpEq8MllFSiiV/datatables/sNIzGl6ePEohZP0D"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "escalated": false,
+            "time": "={{ $now }}",
+            "customer_message": "={{ $('When chat message received').item.json.chatInput }}",
+            "bot_reply": "={{ $json.output }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "time",
+              "displayName": "time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "customer_message",
+              "displayName": "customer_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "bot_reply",
+              "displayName": "bot_reply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "escalated",
+              "displayName": "escalated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        592,
+        0
+      ],
+      "id": "cce277b4-f74b-4870-9a75-0cb91d5284db",
+      "name": "Insert row"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Insert row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        []
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert row": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "a7790c1d-4736-48bf-9a5c-34c1041f59f8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5d30d574dcc9c3abed899134309845832294b2fe9b14caf1e63c7eaa9b9f15c4"
+  },
+  "nodeGroups": [],
+  "id": "trVwNHKtow1djHJf",
+  "tags": []
+}
