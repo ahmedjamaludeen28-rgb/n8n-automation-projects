@@ -1,7 +1,9 @@
-#Customer Support Bot (n8n)
+## Customer Support Bot (n8n)
+
 A customer support chatbot for a fictional gadget shop, Nabil gadgets. It answers questions from the shop information and hands anything it can't answer to a human.
 
-#How it works
+## How it works
+
 1. Trigger: the chat trigger node starts the workflow whenever a customer sends a message.
 2. AI Agent: reads the message and replies using the shop information in it's system message. It uses the gemini model to generate answers.
 3. Memory: the simple memory nodes lets the bot remember the last 15 messages, so follow-up questions like "how long will that take?" make sense.
@@ -11,14 +13,17 @@ A customer support chatbot for a fictional gadget shop, Nabil gadgets. It answer
 - False: the bot's reply goes to the customer and 'escalated' is set to False
 6. Logging: every conversation is saved to a data table called support logs
 
-#Data table: 'support logs'
-column:                  what is stores
--time:                   When the chat happened
--customer message:       What the customer typed
--bot_reply:              What the bot answered
--escalated:              Whether it was handed to a human
+## Data table: `support logs`
 
-#How to run it
+| column | what it stores |
+|---|---|
+| time | When the chat happened |
+| customer_message | What the customer typed |
+| bot_reply | What the bot answered |
+| escalated | Whether it was handed to a human |
+
+## How to run it
+
 1. Import support-bot.json into n8n (Workflows → Import from file).
 2. Create your own Gemini credential (the bot's workflow doesn't include any keys).
 3. Create the data table support logs with the four columns above.
