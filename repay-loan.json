@@ -1,0 +1,407 @@
+{
+  "name": "repay loan",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "REPAY LOAN",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "member_id",
+              "fieldType": "number",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        0,
+        0
+      ],
+      "id": "0bc7d21e-734a-4fea-991f-b24fa3582ac0",
+      "name": "On form submission",
+      "webhookId": "1f0630ba-db33-49d8-a49b-c54d6899536e"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "oJNU4mKA2qNGtkLK",
+          "mode": "list",
+          "cachedResultName": "settings",
+          "cachedResultUrl": "/projects/As3tpEq8MllFSiiV/datatables/oJNU4mKA2qNGtkLK"
+        },
+        "matchType": "allConditions"
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        432,
+        -16
+      ],
+      "id": "63818b3d-63a6-4c18-8029-28e77ecb0652",
+      "name": "Load settings"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "NjJS3XbTR8tFC2Pz",
+          "mode": "list",
+          "cachedResultName": "loans",
+          "cachedResultUrl": "/projects/As3tpEq8MllFSiiV/datatables/NjJS3XbTR8tFC2Pz"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "member_id",
+              "keyValue": "={{ $json.member_id }}"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "active"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "4e085ddf-3452-4cbf-b240-c21675cf83f8",
+      "name": "Find active loan",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "36175553-d1ab-4174-8a57-58de0ceba709",
+              "leftValue": "={{ $('Find active loan').all().filter(i => i.json.status === 'active').length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        656,
+        -16
+      ],
+      "id": "5be5772d-0ac8-4443-80c5-b52553832d03",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9160a0a8-6a88-400c-a19a-4df399a3794c",
+              "name": "reason",
+              "value": "No active loan found",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        880,
+        80
+      ],
+      "id": "4bd337e5-f4f5-44b1-b246-d1915a0aa739",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "NjJS3XbTR8tFC2Pz",
+          "mode": "list",
+          "cachedResultName": "loans",
+          "cachedResultUrl": "/projects/As3tpEq8MllFSiiV/datatables/NjJS3XbTR8tFC2Pz"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyValue": "={{ $('Find active loan').item.json.id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "penalty_applied": "={{ $('Check late').first().json.is_late }}",
+            "status": "rapaid",
+            "amount_paid": "={{ $json.amount_due }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "member_id",
+              "displayName": "member_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Amount",
+              "displayName": "Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "interest",
+              "displayName": "interest",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "total_due",
+              "displayName": "total_due",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "due_date",
+              "displayName": "due_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "loan_date",
+              "displayName": "loan_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "penalty_applied",
+              "displayName": "penalty_applied",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "amount_paid",
+              "displayName": "amount_paid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1328,
+        -112
+      ],
+      "id": "62ca6fb5-b0f2-4d3c-96a3-4d6ae9c935ee",
+      "name": "Update row(s)"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b773a0af-d118-4f02-8111-7fc8c23bbd83",
+              "name": "=is_late",
+              "value": "={{ $now.startOf('day').diff($('Find active loan').first().json.due_date.toDateTime().startOf('day'), 'days').days > 0 }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        880,
+        -112
+      ],
+      "id": "04e79a20-946b-4a39-9881-97352c63bce2",
+      "name": "Check late"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8f894565-fffd-413a-a866-91baedebbb1a",
+              "name": "amount_due",
+              "value": "={{ Math.round($('Find active loan').first().json.total_due * ($json.is_late ? 1 + $('Load settings').first().json.penalty_pct / 100 : 1)) }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1104,
+        -112
+      ],
+      "id": "4a378982-fcb2-4244-a574-e1b1ab3e0ca2",
+      "name": "Calculate amount due"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Find active loan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load settings": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find active loan": {
+      "main": [
+        [
+          {
+            "node": "Load settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Check late",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check late": {
+      "main": [
+        [
+          {
+            "node": "Calculate amount due",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate amount due": {
+      "main": [
+        [
+          {
+            "node": "Update row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "a00dc136-f168-4b44-8562-c44ae2d77aa3",
+  "meta": {
+    "instanceId": "5d30d574dcc9c3abed899134309845832294b2fe9b14caf1e63c7eaa9b9f15c4"
+  },
+  "nodeGroups": [],
+  "id": "HYIloApzQR32NkuV",
+  "tags": []
+}

@@ -36,3 +36,56 @@ A customer support chatbot for a fictional gadget shop, Nabil gadgets. It answer
 
 - An error that comes back from a server means my connection works. 
  `insufficient balance` and "too many requests" were account limits, not network or workflow faults. Now I check which kind of error it is before changing anything, and I use a free-tier model with retries turned on while testing.
+
+
+ ## Project 2: Savings & Loan Automation (demo)
+
+A demo of how a cooperative's savings and loan scheme can be automated in n8n. It uses invented rules and fake data (about 100 imagined members), and it's meant to show the approach, not to run a real organization.
+
+### The rules (stored in a `settings` table, never hardcoded)
+
+| rule | value |
+|---|---|
+| Monthly contribution | ₦50,000 |
+| Minimum saving period before borrowing | 90 days |
+| Maximum loan | ₦150,000 |
+| Interest | 5% flat, charged once |
+| Repayment period | 60 days |
+| Late penalty | 8%, applied once |
+
+### Data tables
+
+| table | what it stores |
+|---|---|
+| `members` | member_id, names, phone, first_contribution_date, status |
+| `loans` | member_id, amount, interest, total_due, loan_date, due_date, status, penalty_applied, amount_paid |
+| `settings` | the rules above, in one row |
+
+### Workflow 1: `loan-request.json`
+
+1. A member submits their ID and the amount they want.
+2. The workflow looks up the member, any active loan they have, and the rules.
+3. An IF node checks three things: saved for at least 90 days, no active loan, and amount within the limit.
+4. **Approved:** it calculates interest, total due, and due date, then saves the loan.
+5. **Rejected:** it replies with the reason.
+
+### Workflow 2: `repay-loan.json`
+
+1. A member submits their ID.
+2. The workflow finds their active loan. If there isn't one, it says so and stops.
+3. It checks whether today is past the due date.
+4. On time means the normal total (₦157,500). Late means the total plus 8% (₦170,100).
+5. It marks the loan repaid and records the amount paid.
+
+### How to run it
+
+1. Import both JSON files into n8n (Workflows → Import from file).
+2. Create the three data tables with the columns above.
+3. Add one row to `settings` with the rule values.
+4. Add a few fake members, some with a first contribution date over 90 days ago and some recent.
+
+### Known limitations
+
+- A rejection message names only the first rule that failed.
+- Repayment is full payment only, with no installments.
+- Late penalties are applied when the member repays. A scheduled daily check is not built yet.

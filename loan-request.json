@@ -1,0 +1,458 @@
+{
+  "name": "loan request",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "CO-ORPERATIVE",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "member_id",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "amount",
+              "fieldType": "number",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -288,
+        -160
+      ],
+      "id": "a685d360-dd1f-4e3d-81f1-2680f1234643",
+      "name": "On form submission",
+      "webhookId": "36ef0efe-5031-4a13-af76-cdd577c6b024"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "echx2dy1ougjryZg",
+          "mode": "list",
+          "cachedResultName": "members",
+          "cachedResultUrl": "/projects/As3tpEq8MllFSiiV/datatables/echx2dy1ougjryZg"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "member_id",
+              "keyValue": "={{ $json.member_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -80,
+        16
+      ],
+      "id": "dfca16ed-cbe0-435a-8e61-281a9bd3266f",
+      "name": "Find member"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "NjJS3XbTR8tFC2Pz",
+          "mode": "list",
+          "cachedResultName": "loans",
+          "cachedResultUrl": "/projects/As3tpEq8MllFSiiV/datatables/NjJS3XbTR8tFC2Pz"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyValue": "={{ $('On form submission').item.json.member_id }}"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "active"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        128,
+        -160
+      ],
+      "id": "090e14ba-6027-4682-b65d-7c02427bc10b",
+      "name": "Find active loan",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "oJNU4mKA2qNGtkLK",
+          "mode": "list",
+          "cachedResultName": "settings",
+          "cachedResultUrl": "/projects/As3tpEq8MllFSiiV/datatables/oJNU4mKA2qNGtkLK"
+        },
+        "matchType": "allConditions"
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        336,
+        16
+      ],
+      "id": "412f8df2-f39b-40c3-bec3-8c751af85bc4",
+      "name": "Load settings"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "3d29b873-25cb-44f0-a82d-1be10a7a9dea",
+              "leftValue": "={{ $now.diff($('Find member').item.json.first_contribution_date.toDateTime(), 'days').days }}",
+              "rightValue": "={{ $('Load settings').item.json.minimum_days }}",
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            },
+            {
+              "id": "d6841417-caba-452e-8b11-18ca4ba8793f",
+              "leftValue": "={{ $('Find active loan').item.json.member_id ?? '' }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "2c305a5f-4ea8-4329-b070-7973756e1343",
+              "leftValue": "={{ $('On form submission').item.json.amount }}",
+              "rightValue": "={{ $json.max_loan }}",
+              "operator": {
+                "type": "number",
+                "operation": "lte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        528,
+        -160
+      ],
+      "id": "7f838b15-2ae0-436f-96ac-a104d52b08ff",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c2445f7d-e6e2-49fd-a273-448e3765d8b0",
+              "name": "member_id",
+              "value": "={{ $('On form submission').item.json.member_id }}",
+              "type": "number"
+            },
+            {
+              "id": "4011741f-c744-4532-9024-4840f6c2ad29",
+              "name": "amount",
+              "value": "={{ $('On form submission').item.json.amount }}",
+              "type": "number"
+            },
+            {
+              "id": "a8451575-23b0-48d7-8177-bf08ba0d5088",
+              "name": "interest",
+              "value": "={{ $('On form submission').item.json.amount * $('Load settings').first().json.interest_pct / 100}}",
+              "type": "number"
+            },
+            {
+              "id": "97bdefa3-e358-4fd5-899c-7c31d37d6124",
+              "name": "total_due",
+              "value": "={{ $('On form submission').item.json.amount * (1 + $('Load settings').first().json.interest_pct / 100) }}",
+              "type": "number"
+            },
+            {
+              "id": "50566b27-2b73-49fc-bb68-7f64b2e1bad2",
+              "name": "loan_date",
+              "value": "={{ $now.toISODate() }}",
+              "type": "string"
+            },
+            {
+              "id": "da9fe5e8-6907-49fe-b7f0-d690ce7da5a8",
+              "name": "due_date",
+              "value": "={{ $now.plus($('Load settings').first().json.repayment_days, 'days'). toISODate() }}",
+              "type": "string"
+            },
+            {
+              "id": "264be72b-53bc-434a-8344-e5442b28f924",
+              "name": "status",
+              "value": "active",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        752,
+        -240
+      ],
+      "id": "69491138-56b3-418a-9282-7810b2a6cfc4",
+      "name": "Calculate loan"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "NjJS3XbTR8tFC2Pz",
+          "mode": "list",
+          "cachedResultName": "loans",
+          "cachedResultUrl": "/projects/As3tpEq8MllFSiiV/datatables/NjJS3XbTR8tFC2Pz"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "penalty_applied": false,
+            "member_id": "={{ $json.member_id }}",
+            "Amount": "={{ $json.amount }}",
+            "interest": "={{ $json.interest }}",
+            "total_due": "={{ $json.total_due }}",
+            "due_date": "={{ $json.due_date }}",
+            "loan_date": "={{ $json.loan_date }}",
+            "status": "={{ $json.status }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "member_id",
+              "displayName": "member_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Amount",
+              "displayName": "Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "interest",
+              "displayName": "interest",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "total_due",
+              "displayName": "total_due",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "due_date",
+              "displayName": "due_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "loan_date",
+              "displayName": "loan_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "penalty_applied",
+              "displayName": "penalty_applied",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        976,
+        -240
+      ],
+      "id": "7e1dec66-098e-4bd1-9102-d2ce95f26378",
+      "name": "Insert row"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "820750a6-4cca-4d41-869e-9101fb0a631a",
+              "name": "reason",
+              "value": "={{ $now.diff($('Find member').first().json.first_contribution_date.toDateTime(), 'days').days < $('Load settings').first().json.minimum_days ? 'Not eligible: you must save for at least ' + $('Load settings').first().json.minimum_days + ' days first.' : ($('Find active loan').first().json.member_id ? 'Not eligible: you already have an active loan.' : 'Not eligible: the maximum loan is ' + $('Load settings').first().json.max_loan + '.') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        752,
+        -64
+      ],
+      "id": "7af0a2bd-f955-4be0-a513-77db6d29be1d",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Find member",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find member": {
+      "main": [
+        [
+          {
+            "node": "Find active loan",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find active loan": {
+      "main": [
+        [
+          {
+            "node": "Load settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load settings": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Calculate loan",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate loan": {
+      "main": [
+        [
+          {
+            "node": "Insert row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "98355ec0-5838-457f-b037-8b074b0662cc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5d30d574dcc9c3abed899134309845832294b2fe9b14caf1e63c7eaa9b9f15c4"
+  },
+  "nodeGroups": [],
+  "id": "QvpIV3gOr4LqQ0pt",
+  "tags": []
+}
