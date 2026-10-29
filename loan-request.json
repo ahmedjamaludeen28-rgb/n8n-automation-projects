@@ -40,6 +40,7 @@
           "cachedResultName": "members",
           "cachedResultUrl": "/projects/As3tpEq8MllFSiiV/datatables/echx2dy1ougjryZg"
         },
+        "matchType": "allConditions",
         "filters": {
           "conditions": [
             {
@@ -447,7 +448,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "98355ec0-5838-457f-b037-8b074b0662cc",
+  "versionId": "8ae92c47-eba3-483a-b64b-6740b2f82989",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "5d30d574dcc9c3abed899134309845832294b2fe9b14caf1e63c7eaa9b9f15c4"

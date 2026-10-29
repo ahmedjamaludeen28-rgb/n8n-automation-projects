@@ -276,7 +276,13 @@
               "id": "b773a0af-d118-4f02-8111-7fc8c23bbd83",
               "name": "=is_late",
               "value": "={{ $now.startOf('day').diff($('Find active loan').first().json.due_date.toDateTime().startOf('day'), 'days').days > 0 }}",
-              "type": "string"
+              "type": "boolean"
+            },
+            {
+              "id": "fe3c9ca4-ba1b-4082-89ac-beb94365d877",
+              "name": "needs_penalty",
+              "value": "={{ $now.startOf('day').diff($('Find active loan').first().json.due_date.toDateTime().startOf('day'), 'days').days > 0 && !$('Find active loan').first().json.penalty_applied }}",
+              "type": "boolean"
             }
           ]
         },
@@ -299,7 +305,7 @@
             {
               "id": "8f894565-fffd-413a-a866-91baedebbb1a",
               "name": "amount_due",
-              "value": "={{ Math.round($('Find active loan').first().json.total_due * ($json.is_late ? 1 + $('Load settings').first().json.penalty_pct / 100 : 1)) }}",
+              "value": "={{ Math.round($('Find active loan').first().json.total_due * ($json.needs_penalty ? 1 + $('Load settings').first().json.penalty_pct / 100 : 1)) }}",
               "type": "number"
             }
           ]
@@ -397,7 +403,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "a00dc136-f168-4b44-8562-c44ae2d77aa3",
+  "versionId": "a407b341-5338-45fe-be14-83b0abf8d1b9",
   "meta": {
     "instanceId": "5d30d574dcc9c3abed899134309845832294b2fe9b14caf1e63c7eaa9b9f15c4"
   },

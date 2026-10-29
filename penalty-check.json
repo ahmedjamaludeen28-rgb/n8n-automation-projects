@@ -1,0 +1,340 @@
+{
+  "name": "penalty check",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -240,
+        -288
+      ],
+      "id": "cd7b4e22-fec3-45fc-9057-9334ab7eb23e",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "NjJS3XbTR8tFC2Pz",
+          "mode": "list",
+          "cachedResultName": "loans",
+          "cachedResultUrl": "/projects/As3tpEq8MllFSiiV/datatables/NjJS3XbTR8tFC2Pz"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "status",
+              "keyValue": "active"
+            },
+            {
+              "keyName": "penalty_applied",
+              "condition": "isFalse"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -48,
+        -16
+      ],
+      "id": "a0a479b8-b87a-4b06-807c-28eea30dbf03",
+      "name": "Find unpenalized loans"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "d080a464-7c0e-45ef-a5fe-9ab09859797d",
+              "leftValue": "={{ $json.due_date.toDateTime() }}",
+              "rightValue": "={{ $now.startOf('day') }}",
+              "operator": {
+                "type": "dateTime",
+                "operation": "before"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.4,
+      "position": [
+        112,
+        -272
+      ],
+      "id": "470e0894-0803-40a6-9fea-580363ec64bc",
+      "name": "Keep overdue only"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "oJNU4mKA2qNGtkLK",
+          "mode": "list",
+          "cachedResultName": "settings",
+          "cachedResultUrl": "/projects/As3tpEq8MllFSiiV/datatables/oJNU4mKA2qNGtkLK"
+        },
+        "matchType": "allConditions"
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        304,
+        -16
+      ],
+      "id": "3d96a2da-46f7-4f16-b978-1f01103597f1",
+      "name": "Load settings"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "138e5d5b-a54f-48f1-849f-f830a76e9530",
+              "name": "id",
+              "value": "={{ $('Keep overdue only').item.json.id }}",
+              "type": "number"
+            },
+            {
+              "id": "e53748b6-3594-4fb1-8c56-bb488e3adb02",
+              "name": "new_total_due",
+              "value": "={{ Math.round($('Keep overdue only').item.json.total_due * (1 + $('Load settings').first().json.penalty_pct / 100)) }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        464,
+        -240
+      ],
+      "id": "50316f03-89f8-45c9-8bee-5ea6846af0e5",
+      "name": "Calculate penalty"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "NjJS3XbTR8tFC2Pz",
+          "mode": "list",
+          "cachedResultName": "loans",
+          "cachedResultUrl": "/projects/As3tpEq8MllFSiiV/datatables/NjJS3XbTR8tFC2Pz"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyValue": "={{ $json.id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "penalty_applied": true,
+            "total_due": "={{ $json.new_total_due }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "member_id",
+              "displayName": "member_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Amount",
+              "displayName": "Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "interest",
+              "displayName": "interest",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "total_due",
+              "displayName": "total_due",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "due_date",
+              "displayName": "due_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "loan_date",
+              "displayName": "loan_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "penalty_applied",
+              "displayName": "penalty_applied",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "amount_paid",
+              "displayName": "amount_paid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        656,
+        0
+      ],
+      "id": "9f41b387-d5e8-47b0-964b-9145f4e45490",
+      "name": "Apply penalty"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Find unpenalized loans",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find unpenalized loans": {
+      "main": [
+        [
+          {
+            "node": "Keep overdue only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep overdue only": {
+      "main": [
+        [
+          {
+            "node": "Load settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load settings": {
+      "main": [
+        [
+          {
+            "node": "Calculate penalty",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate penalty": {
+      "main": [
+        [
+          {
+            "node": "Apply penalty",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "70cdb123-7901-425a-9200-1bddb3b895e5",
+  "meta": {
+    "instanceId": "5d30d574dcc9c3abed899134309845832294b2fe9b14caf1e63c7eaa9b9f15c4"
+  },
+  "nodeGroups": [],
+  "id": "kzl8PATWwNkftK0c",
+  "tags": []
+}
