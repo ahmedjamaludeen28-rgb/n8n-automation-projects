@@ -74,18 +74,50 @@ A demo of how a cooperative's savings and loan scheme can be automated in n8n. I
 1. A member submits their ID.
 2. The workflow finds their active loan. If there isn't one, it says so and stops.
 3. It checks whether today is past the due date.
-4. On time means the normal total (₦157,500). Late means the total plus 8% (₦170,100).
+4. It adds the 8% penalty only if the loan is late **and** `penalty_applied` is false. If the daily job already charged the penalty, the stored total is used as it is.
 5. It marks the loan repaid and records the amount paid.
+
+### Workflow 3: `penalty-check.json`
+
+A scheduled workflow that runs once a day with no one clicking anything.
+
+1. A Schedule Trigger starts it.
+2. It finds loans that are active and not yet penalized.
+3. A filter keeps only the loans past their due date.
+4. It reads the penalty percentage from `settings`.
+5. It calculates the new total (total due plus 8%).
+6. It updates the loan with the new total and sets `penalty_applied` to true.
+
+Because of the `penalty_applied` flag, running it twice in a row changes nothing, so a loan can never be penalized twice.
+
+### How the three workflows connect
+
+The workflows never call each other. They share state through the data tables:
+
+| workflow | started by | effect on `loans` |
+|---|---|---|
+| loan request | a member's form | creates a loan |
+| penalty check | the clock, daily | adds the penalty once, sets the flag |
+| repay loan | a member's form | closes the loan |
 
 ### How to run it
 
-1. Import both JSON files into n8n (Workflows → Import from file).
-2. Create the three data tables with the columns above.
+1. Import the three JSON files into n8n (Workflows → Import from file).
+2. Create the data tables with the columns above.
 3. Add one row to `settings` with the rule values.
 4. Add a few fake members, some with a first contribution date over 90 days ago and some recent.
+5. Publish `penalty-check` if you want it to run daily on its own.
 
 ### Known limitations
 
 - A rejection message names only the first rule that failed.
 - Repayment is full payment only, with no installments.
-- Late penalties are applied when the member repays. A scheduled daily check is not built yet.
+- The `contributions` table exists but nothing records into it yet.
+- Everything here is demo data with invented rules, not a production system.
+
+### What I learned
+
+- **A field can't be used in the node that creates it.** Calculations that depend on each other need two nodes, or the result comes out as NaN or undefined.
+- **A true/false value saved as text is dangerous.** The text "false" counts as true, so yes/no fields must be set to Boolean.
+- **A flag makes a scheduled job safe to repeat.** `penalty_applied` stops a daily job (and the repay workflow) from charging the same loan twice.
+- **An Update row should list only the columns it changes,** and filter on a unique `id`, or it can overwrite the whole row.
