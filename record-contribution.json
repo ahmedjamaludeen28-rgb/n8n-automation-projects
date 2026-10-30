@@ -1,0 +1,345 @@
+{
+  "name": "record contribution",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "CONTRIBUTION",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "member_id",
+              "fieldType": "number",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "amount",
+              "fieldType": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -528,
+        -224
+      ],
+      "id": "afdbde6d-692a-4e83-8251-6fcd56be8e3c",
+      "name": "On form submission",
+      "webhookId": "b1c49dfc-5e1c-4d12-b314-0ca18b68dc18"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "echx2dy1ougjryZg",
+          "mode": "list",
+          "cachedResultName": "members",
+          "cachedResultUrl": "/projects/As3tpEq8MllFSiiV/datatables/echx2dy1ougjryZg"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "member_id",
+              "keyValue": "={{ $json.member_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -368,
+        -32
+      ],
+      "id": "ae1c6af6-48bc-46f5-927e-da672fc75b92",
+      "name": "Find member",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "oJNU4mKA2qNGtkLK",
+          "mode": "list",
+          "cachedResultName": "settings",
+          "cachedResultUrl": "/projects/As3tpEq8MllFSiiV/datatables/oJNU4mKA2qNGtkLK"
+        },
+        "matchType": "allConditions"
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -32,
+        -48
+      ],
+      "id": "a039540a-1453-4398-9264-52e2cb56e759",
+      "name": "Load settings"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "e2efe5cf-d6d1-472d-a1f3-f32d96b1542d",
+              "leftValue": "={{ $('Find member').all().filter(i => i.json.member_id !== undefined).length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            },
+            {
+              "id": "a036d661-5478-4c4c-b514-e529da8b2822",
+              "leftValue": "={{ $('Find month payment').all().filter(i => i.json.member_id !== undefined).length }}",
+              "rightValue": "0",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "b1811f0d-e79f-492f-8191-130a4ee476f8",
+              "leftValue": "={{ $('On form submission').item.json.amount }}",
+              "rightValue": "={{ $json.contribution }}",
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        112,
+        -208
+      ],
+      "id": "739af3c4-49bd-4d3b-92d2-c10903966781",
+      "name": "Valid payments"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "kQxesqnkk5ZXSTea",
+          "mode": "list",
+          "cachedResultName": "contributon",
+          "cachedResultUrl": "/projects/As3tpEq8MllFSiiV/datatables/kQxesqnkk5ZXSTea"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "month": "={{ $now.toFormat('yyyy-MM') }}",
+            "member_id": "={{ $('On form submission').item.json.member_id }}",
+            "amount": "={{ $('On form submission').item.json.amount }}",
+            "date": "2026-10-29T12:37:36"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "member_id",
+              "displayName": "member_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "amount",
+              "displayName": "amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "month",
+              "displayName": "month",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        368,
+        -256
+      ],
+      "id": "efefa654-6ea2-4489-a4a9-de8c31d10606",
+      "name": "Save contribution"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "19376b36-ccb2-4d1a-a48f-37a376449c71",
+              "name": "reason",
+              "value": "={{ [\n  $('Find member').all().filter(i => i.json.member_id !== undefined).length === 0 ? 'Member not found.' : null,\n  $('Find month payment').all().filter(i => i.json.member_id !== undefined).length > 0 ? 'This member has already paid this month.' : null,\n  Number($('On form submission').first().json.amount) !== $('Load settings').first().json.contribution ? 'Amount must be exactly ' + $('Load settings').first().json.contribution + '.' : null\n].filter(Boolean).join(' ') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        368,
+        0
+      ],
+      "id": "a5bb7bc7-2474-4479-a673-76df63e8cf85",
+      "name": "Rejection reason"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "kQxesqnkk5ZXSTea",
+          "mode": "list",
+          "cachedResultName": "contributon",
+          "cachedResultUrl": "/projects/As3tpEq8MllFSiiV/datatables/kQxesqnkk5ZXSTea"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "member_id",
+              "keyValue": "={{ $json.member_id }}"
+            },
+            {
+              "keyName": "month",
+              "keyValue": "={{ $now.toFormat('yyyy-MM') }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -208,
+        -208
+      ],
+      "id": "d665ffdc-bc95-438c-b247-44b2f0678b92",
+      "name": "Find month payment",
+      "alwaysOutputData": true
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Find member",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find member": {
+      "main": [
+        [
+          {
+            "node": "Find month payment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load settings": {
+      "main": [
+        [
+          {
+            "node": "Valid payments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valid payments": {
+      "main": [
+        [
+          {
+            "node": "Save contribution",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Rejection reason",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find month payment": {
+      "main": [
+        [
+          {
+            "node": "Load settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "8776e073-b994-4fae-a381-a7942e433851",
+  "meta": {
+    "instanceId": "5d30d574dcc9c3abed899134309845832294b2fe9b14caf1e63c7eaa9b9f15c4"
+  },
+  "nodeGroups": [],
+  "id": "ZfvhIpiWJvoc843u",
+  "tags": []
+}

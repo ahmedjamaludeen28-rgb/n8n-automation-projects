@@ -1,0 +1,346 @@
+{
+  "name": "monthly statements",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "months"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -528,
+        -288
+      ],
+      "id": "43832117-53d8-4256-8fbb-f96a0c471050",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "kQxesqnkk5ZXSTea",
+          "mode": "list",
+          "cachedResultName": "contributon",
+          "cachedResultUrl": "/projects/As3tpEq8MllFSiiV/datatables/kQxesqnkk5ZXSTea"
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -368,
+        -80
+      ],
+      "id": "9bf5161b-f02b-4359-886a-1b171356ca04",
+      "name": "Get contributions",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "NjJS3XbTR8tFC2Pz",
+          "mode": "list",
+          "cachedResultName": "loans",
+          "cachedResultUrl": "/projects/As3tpEq8MllFSiiV/datatables/NjJS3XbTR8tFC2Pz"
+        },
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "status",
+              "keyValue": "active"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -208,
+        -272
+      ],
+      "id": "4063d982-ffd8-4007-9975-4651a06c3d59",
+      "name": "Get active loans",
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "echx2dy1ougjryZg",
+          "mode": "list",
+          "cachedResultName": "members",
+          "cachedResultUrl": "/projects/As3tpEq8MllFSiiV/datatables/echx2dy1ougjryZg"
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -32,
+        -80
+      ],
+      "id": "21b75b64-2841-4ef9-8e31-4a5c4d9215fc",
+      "name": "Get members",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a2cd7bc4-8848-4705-954a-1ae19ab2a4ae",
+              "name": "member_id",
+              "value": "={{ $json.member_id }}",
+              "type": "number"
+            },
+            {
+              "id": "ad6b59be-68b2-4ddd-8703-020ad2c7ecb2",
+              "name": "names",
+              "value": "={{ $json.names }}",
+              "type": "string"
+            },
+            {
+              "id": "3cc1eeb9-53a3-4d08-b037-b9afdc351173",
+              "name": "month",
+              "value": "={{ $now.toFormat('yyyy-MM') }}",
+              "type": "string"
+            },
+            {
+              "id": "3923b1e9-e1a2-439d-b156-0b3b6f127ceb",
+              "name": "generated_on",
+              "value": "={{ $now.toISODate() }}",
+              "type": "string"
+            },
+            {
+              "id": "ee3cf7b0-50e7-44b7-9651-b432c1985ac1",
+              "name": "months_paid",
+              "value": "={{ $('Get contributions').all().filter(i => Number(i.json.member_id) === Number($json.member_id)).length }}",
+              "type": "number"
+            },
+            {
+              "id": "0078de01-6524-4148-982f-4901a1b39bdc",
+              "name": "total_saved",
+              "value": "={{ $('Get contributions').all().filter(i => Number(i.json.member_id) === Number($json.member_id)).reduce((sum, i) => sum + Number(i.json.amount), 0) }}",
+              "type": "number"
+            },
+            {
+              "id": "c145e72b-9ba9-4381-9680-883df11b8dfe",
+              "name": "loan_due",
+              "value": "={{ $('Get active loans').all().find(i => Number(i.json.member_id) === Number($json.member_id))?.json.total_due ?? 0 }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        112,
+        -256
+      ],
+      "id": "e9e35cd0-790b-4aa2-bd33-628bb2cf3e1f",
+      "name": "Build statement"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "sz9dKumwD5lXgKMB",
+          "mode": "list",
+          "cachedResultName": "statements",
+          "cachedResultUrl": "/projects/As3tpEq8MllFSiiV/datatables/sz9dKumwD5lXgKMB"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "member_id",
+              "keyValue": "={{ $json.member_id }}"
+            },
+            {
+              "keyName": "month",
+              "keyValue": "={{ $json.month }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "member_id": "={{ $json.member_id }}",
+            "names": "={{ $json.names }}",
+            "month": "={{ $json.month }}",
+            "months_paid": "={{ $json.months_paid }}",
+            "total_saved": "={{ $json.total_saved }}",
+            "loan_due": "={{ $json.loan_due }}",
+            "generated_on": "={{ $json.generated_on }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "member_id",
+              "displayName": "member_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "names",
+              "displayName": "names",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "month",
+              "displayName": "month",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "months_paid",
+              "displayName": "months_paid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "total_saved",
+              "displayName": "total_saved",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "loan_due",
+              "displayName": "loan_due",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "generated_on",
+              "displayName": "generated_on",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        288,
+        -80
+      ],
+      "id": "35547c66-ca27-464b-8964-a654bc1fac3c",
+      "name": "Save statement"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get contributions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get contributions": {
+      "main": [
+        [
+          {
+            "node": "Get active loans",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get active loans": {
+      "main": [
+        [
+          {
+            "node": "Get members",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get members": {
+      "main": [
+        [
+          {
+            "node": "Build statement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build statement": {
+      "main": [
+        [
+          {
+            "node": "Save statement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "168c427c-ca3f-480c-b937-ff79b5ca8c8e",
+  "meta": {
+    "instanceId": "5d30d574dcc9c3abed899134309845832294b2fe9b14caf1e63c7eaa9b9f15c4"
+  },
+  "nodeGroups": [],
+  "id": "M7JEUNDsIfhjiNLZ",
+  "tags": []
+}
